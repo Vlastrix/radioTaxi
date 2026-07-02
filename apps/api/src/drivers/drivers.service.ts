@@ -1,26 +1,42 @@
 import { Injectable } from '@nestjs/common';
-import { CreateDriverDto } from './dto/create-driver.dto';
-import { UpdateDriverDto } from './dto/update-driver.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class DriversService {
-  create(createDriverDto: CreateDriverDto) {
-    return 'This action adds a new driver';
+  constructor(private prisma: PrismaService) {}
+
+  create(data: any) {
+    return this.prisma.driver.create({
+      data: {
+        name: data.name,
+        phone: data.phone,
+        license: data.license,
+      }
+    });
   }
 
   findAll() {
-    return `This action returns all drivers`;
+    return this.prisma.driver.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} driver`;
+    return this.prisma.driver.findUnique({ where: { id } });
   }
 
-  update(id: number, updateDriverDto: UpdateDriverDto) {
-    return `This action updates a #${id} driver`;
+  update(id: number, data: any) {
+    return this.prisma.driver.update({
+      where: { id },
+      data: {
+        name: data.name,
+        phone: data.phone,
+        license: data.license,
+      }
+    });
   }
 
   remove(id: number) {
-    return `This action removes a #${id} driver`;
+    return this.prisma.driver.delete({ where: { id } });
   }
 }

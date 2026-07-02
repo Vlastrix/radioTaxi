@@ -1,34 +1,46 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, Request } from '@nestjs/common';
 import { ServicesService } from './services.service';
-import { CreateServiceDto } from './dto/create-service.dto';
-import { UpdateServiceDto } from './dto/update-service.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('services')
 export class ServicesController {
   constructor(private readonly servicesService: ServicesService) {}
 
+  @Roles('CLIENT')
   @Post()
-  create(@Body() createServiceDto: CreateServiceDto) {
-    return this.servicesService.create(createServiceDto);
+  create(@Request() req: any, @Body() createServiceDto: { origin: string; destination: string }) {
+    return this.servicesService.create(req.user.userId, createServiceDto);
   }
 
-  @Get()
-  findAll() {
-    return this.servicesService.findAll();
+  @Roles('OPERATOR')
+  @Get('operadora')
+  getOperadoraDashboard() {
+    return this.servicesService.getOperadoraDashboard();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.servicesService.findOne(+id);
+  @Roles('OPERATOR')
+  @Patch(':id/assign')
+  assignDriver(@Param('id') id: string, @Body() body: { driverId: number }) {
+    return this.servicesService.assignDriver(+id, body.driverId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateServiceDto: UpdateServiceDto) {
-    return this.servicesService.update(+id, updateServiceDto);
+  @Roles('DRIVER')
+  @Patch(':id/status')
+  updateStatus(@Param('id') id: string, @Body() body: { status: string }) {
+    return this.servicesService.updateStatus(+id, body.status);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.servicesService.remove(+id);
+  @Get('current')
+  getCurrentTrip(@Request() req: any) {
+    return this.servicesService.getCurrentTrip(req.user);
+  }
+
+  @Roles('ADMIN', 'OPERATOR')
+  @Get('history')
+  getHistory() {
+    return this.servicesService.getHistory();
   }
 }

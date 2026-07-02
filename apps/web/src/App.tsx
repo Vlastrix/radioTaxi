@@ -1,31 +1,63 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { ProtectedRoute } from './components/layout/ProtectedRoute';
+import { useAuth } from './lib/auth';
+
+import { OperadoraPanel } from './pages/OperadoraPanel';
+import { ChoferPanel } from './pages/ChoferPanel';
+import { ClientePanel } from './pages/ClientePanel';
+import { Dashboard } from './pages/Dashboard';
 import { Clients } from './pages/Clients';
+import { History } from './pages/History';
+import { Drivers } from './pages/Drivers';
+import { Operators } from './pages/Operators';
 
-// Simple placeholder components for now
-const Dashboard = () => (
-  <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 animate-in fade-in slide-in-from-bottom-4 duration-500">
-    <h1 className="text-2xl font-bold text-slate-800 mb-2">Dashboard</h1>
-    <p className="text-slate-500">Resumen general de servicios, pagos y taxis disponibles.</p>
-  </div>
-);
-
-const Operadora = () => <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 animate-in fade-in"><h1 className="text-2xl font-bold text-slate-800">Operadora</h1></div>;
-const Choferes = () => <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 animate-in fade-in"><h1 className="text-2xl font-bold text-slate-800">Choferes</h1></div>;
+const RootRedirect = () => {
+  const { user } = useAuth();
+  if (!user) return <Navigate to="/login" replace />;
+  switch (user.role) {
+    case 'CLIENT': return <Navigate to="/cliente" replace />;
+    case 'OPERATOR': return <Navigate to="/operadora" replace />;
+    case 'DRIVER': return <Navigate to="/chofer" replace />;
+    case 'ADMIN': return <Navigate to="/admin" replace />;
+    default: return <Navigate to="/login" replace />;
+  }
+};
 
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/" element={<RootRedirect />} />
       
       {/* Protected Routes inside MainLayout */}
-      <Route path="/" element={<MainLayout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="clientes" element={<Clients />} />
-        <Route path="operadora" element={<Operadora />} />
-        <Route path="choferes" element={<Choferes />} />
-        <Route path="*" element={<Dashboard />} />
+      <Route element={<MainLayout />}>
+        {/* Rutas Admin */}
+        <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+          <Route path="/admin" element={<Dashboard />} />
+          <Route path="/choferes" element={<Drivers />} />
+          <Route path="/operadoras" element={<Operators />} />
+        </Route>
+
+        {/* Rutas Compartidas Admin / Operadora */}
+        <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'OPERATOR']} />}>
+          <Route path="/operadora" element={<OperadoraPanel />} />
+          <Route path="/clientes" element={<Clients />} />
+          <Route path="/historial" element={<History />} />
+        </Route>
+
+        {/* Rutas Chofer */}
+        <Route element={<ProtectedRoute allowedRoles={['DRIVER']} />}>
+          <Route path="/chofer" element={<ChoferPanel />} />
+        </Route>
+
+        {/* Rutas Cliente */}
+        <Route element={<ProtectedRoute allowedRoles={['CLIENT']} />}>
+          <Route path="/cliente" element={<ClientePanel />} />
+        </Route>
       </Route>
     </Routes>
   );

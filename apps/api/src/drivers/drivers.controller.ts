@@ -1,15 +1,13 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
 import { DriversService } from './drivers.service';
-import { CreateDriverDto } from './dto/create-driver.dto';
-import { UpdateDriverDto } from './dto/update-driver.dto';
 
 @Controller('drivers')
 export class DriversController {
   constructor(private readonly driversService: DriversService) {}
 
   @Post()
-  create(@Body() createDriverDto: CreateDriverDto) {
-    return this.driversService.create(createDriverDto);
+  create(@Body() data: any) {
+    return this.driversService.create(data);
   }
 
   @Get()
@@ -23,8 +21,8 @@ export class DriversController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDriverDto: UpdateDriverDto) {
-    return this.driversService.update(+id, updateDriverDto);
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.driversService.update(+id, data);
   }
 
   @Delete(':id')

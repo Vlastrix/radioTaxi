@@ -1,6 +1,9 @@
-import { Menu, Bell, User as UserIcon } from 'lucide-react';
+import { Menu, Bell, User as UserIcon, LogOut } from 'lucide-react';
+import { useAuth } from '../../lib/auth';
 
 export function Header({ onMenuClick }: { onMenuClick: () => void }) {
+  const { user, logout } = useAuth();
+
   return (
     <header className="bg-white border-b border-slate-100 h-20 flex items-center justify-between px-4 lg:px-8 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] sticky top-0 z-10">
       <div className="flex items-center gap-4">
@@ -26,10 +29,14 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
             <UserIcon className="w-5 h-5" />
           </div>
           <div className="hidden sm:block text-sm pr-2">
-            <p className="font-semibold text-slate-700">Admin User</p>
-            <p className="text-slate-500 text-xs">Administrador</p>
+            <p className="font-semibold text-slate-700">{user?.name || 'Usuario'}</p>
+            <p className="text-slate-500 text-xs">{user?.role || 'Rol'}</p>
           </div>
         </div>
+
+        <button onClick={logout} className="p-2.5 rounded-full text-red-500 hover:bg-red-50 transition-colors" title="Cerrar sesión">
+          <LogOut className="w-5 h-5" />
+        </button>
       </div>
     </header>
   );

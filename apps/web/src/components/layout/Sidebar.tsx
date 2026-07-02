@@ -1,22 +1,54 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Users, Headset, Car, FileText, CreditCard, LogOut } from 'lucide-react';
-
-const navItems = [
-  { name: 'Dashboard', path: '/', icon: Home },
-  { name: 'Clientes', path: '/clientes', icon: Users },
-  { name: 'Operadora', path: '/operadora', icon: Headset },
-  { name: 'Choferes', path: '/choferes', icon: Car },
-  { name: 'Servicios', path: '/servicios', icon: FileText },
-  { name: 'Pagos', path: '/pagos', icon: CreditCard },
-];
+import { Home, Users, Headset, Car, FileText, MapPin, LogOut } from 'lucide-react';
+import { useAuth } from '../../lib/auth';
 
 export function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: boolean) => void }) {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    logout();
     navigate('/login');
   };
+
+  // Dinámicamente definimos qué links ver según el rol
+  const getNavItems = () => {
+    if (!user) return [];
+    
+    if (user.role === 'ADMIN') {
+      return [
+        { name: 'Dashboard', path: '/admin', icon: Home },
+        { name: 'Viajes en Vivo', path: '/operadora', icon: MapPin },
+        { name: 'Choferes', path: '/choferes', icon: Car },
+        { name: 'Operadoras', path: '/operadoras', icon: Headset },
+        { name: 'Clientes', path: '/clientes', icon: Users },
+        { name: 'Historial', path: '/historial', icon: FileText },
+      ];
+    }
+    
+    if (user.role === 'OPERATOR') {
+      return [
+        { name: 'Operadora', path: '/operadora', icon: Headset },
+        { name: 'Historial', path: '/historial', icon: FileText },
+      ];
+    }
+
+    if (user.role === 'DRIVER') {
+      return [
+        { name: 'Viaje Actual', path: '/chofer', icon: Car },
+      ];
+    }
+
+    if (user.role === 'CLIENT') {
+      return [
+        { name: 'Pedir Taxi', path: '/cliente', icon: MapPin },
+      ];
+    }
+
+    return [];
+  };
+
+  const navItems = getNavItems();
 
   return (
     <>
@@ -34,10 +66,8 @@ export function Sidebar({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (va
         md:relative md:translate-x-0 flex flex-col border-r border-slate-100
       `}>
         <div className="p-6 border-b border-slate-100 flex items-center justify-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-violet-500 flex items-center justify-center text-white font-bold text-xl shadow-md shadow-blue-500/20">
-            RT
-          </div>
-          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">
+          <img src="/logo.png" alt="RadioTaxi Logo" className="w-12 h-12 object-contain rounded-xl shadow-sm" />
+          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-700 to-slate-900">
             Radio Taxi
           </h2>
         </div>

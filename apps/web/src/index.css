@@ -1,15 +1,44 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #3b82f6;
-  --color-secondary: #8b5cf6;
-  --color-background: #f8fafc;
+  --color-primary: #E58852;
+  --color-secondary: #3A3A5A;
+  --color-background: #F5F2ED;
   --color-surface: #ffffff;
+
+  /* Override Slate for the Beige / Deep Purple theme */
+  --color-slate-50: #F5F2ED;
+  --color-slate-100: #EAE6DD;
+  --color-slate-200: #D8D2C5;
+  --color-slate-300: #BAB6AE;
+  --color-slate-400: #9C9BAB;
+  --color-slate-500: #747387;
+  --color-slate-600: #5A5A72;
+  --color-slate-700: #42425B;
+  --color-slate-800: #3A3A5A;
+  --color-slate-900: #212136;
+
+  /* Override Blue for the Orange accent */
+  --color-blue-50: #FDF4ED;
+  --color-blue-100: #FBE6D6;
+  --color-blue-200: #F6CCAE;
+  --color-blue-300: #F1B286;
+  --color-blue-400: #EB995E;
+  --color-blue-500: #E58852;
+  --color-blue-600: #D3743B;
+  --color-blue-700: #B25D2B;
+  --color-blue-800: #8C4720;
+  --color-blue-900: #663318;
+
+  /* Override Violet to match the Orange to avoid weird gradients */
+  --color-violet-100: #FBE6D6;
+  --color-violet-500: #D87A42;
+  --color-violet-600: #C46732;
 }
 
 body {
   background-color: var(--color-background);
-  color: #1e293b;
+  color: var(--color-slate-800);
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   margin: 0;

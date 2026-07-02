@@ -11,101 +11,102 @@ import {
   getPaginationRowModel,
 } from '@tanstack/react-table';
 
-type Client = {
+type Operator = {
   id: number;
   name: string;
-  phone: string;
-  email: string | null;
-  location: string | null;
+  email: string;
   createdAt: string;
 };
 
-const emptyData: Client[] = [];
+const emptyData: Operator[] = [];
 
-export function Clients() {
+export function Operators() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [editingOperator, setEditingOperator] = useState<Operator | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
-    phone: '',
     email: '',
+    password: '',
   });
 
-  const { data: clients = emptyData, isLoading, error } = useQuery({
-    queryKey: ['clients'],
+  const { data: operators = emptyData, isLoading, error } = useQuery({
+    queryKey: ['operators'],
     queryFn: async () => {
-      const { data } = await api.get('/clients');
+      const { data } = await api.get('/users/operators');
       return data;
     },
   });
 
   const saveMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      if (editingClient) {
-        return api.patch(`/clients/${editingClient.id}`, data);
+      const payload: any = { ...data };
+      if (editingOperator && !payload.password) {
+        delete payload.password;
+      }
+      if (editingOperator) {
+        return api.patch(`/users/operators/${editingOperator.id}`, payload);
       } else {
-        return api.post('/clients', data);
+        return api.post('/users/operators', payload);
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['operators'] });
       closeModal();
     },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || 'Error al guardar la operadora');
+    }
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return api.delete(`/clients/${id}`);
+      return api.delete(`/users/operators/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
+      queryClient.invalidateQueries({ queryKey: ['operators'] });
     },
   });
 
-  const openModal = (client?: Client) => {
-    if (client) {
-      setEditingClient(client);
+  const openModal = (operator?: Operator) => {
+    if (operator) {
+      setEditingOperator(operator);
       setFormData({
-        name: client.name,
-        phone: client.phone,
-        email: client.email || '',
+        name: operator.name,
+        email: operator.email,
+        password: '',
       });
     } else {
-      setEditingClient(null);
-      setFormData({ name: '', phone: '', email: '' });
+      setEditingOperator(null);
+      setFormData({ name: '', email: '', password: '' });
     }
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
-    setEditingClient(null);
+    setEditingOperator(null);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const payload: any = { ...formData };
-    if (!payload.email) {
-      delete payload.email; // Evitar conflictos de unicidad en BD si el string está vacío
-    }
-    saveMutation.mutate(payload);
+    saveMutation.mutate(formData);
   };
 
-  const columnHelper = createColumnHelper<Client>();
+  const columnHelper = createColumnHelper<Operator>();
   const columns = [
     columnHelper.accessor('name', {
       header: 'Nombre',
       cell: info => <span className="font-semibold text-slate-800">{info.getValue()}</span>,
     }),
-    columnHelper.accessor('phone', {
-      header: 'Teléfono',
+    columnHelper.accessor('email', {
+      header: 'Email / Usuario',
       cell: info => info.getValue(),
     }),
-    columnHelper.accessor('email', {
-      header: 'Email',
-      cell: info => info.getValue() || <span className="text-slate-400 italic">No provisto</span>,
+    columnHelper.accessor('createdAt', {
+      header: 'Fecha Creación',
+      cell: info => new Date(info.getValue()).toLocaleDateString(),
     }),
     columnHelper.display({
       id: 'actions',
@@ -116,7 +117,7 @@ export function Clients() {
             <Pencil className="w-4 h-4" />
           </Button>
           <Button variant="ghost" size="sm" className="text-red-600 px-2 hover:text-red-700 hover:bg-red-50" onClick={() => {
-            if (window.confirm('¿Seguro que deseas eliminar este cliente?')) {
+            if (window.confirm('¿Seguro que deseas eliminar esta operadora? (No podrá acceder al sistema)')) {
               deleteMutation.mutate(row.original.id);
             }
           }} title="Eliminar">
@@ -128,7 +129,7 @@ export function Clients() {
   ];
 
   const table = useReactTable({
-    data: clients,
+    data: operators,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -143,18 +144,18 @@ export function Clients() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 animate-in fade-in slide-in-from-top-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800">Clientes</h1>
-          <p className="text-slate-500 mt-1">Gestiona el directorio de pasajeros habituales.</p>
+          <h1 className="text-3xl font-bold text-slate-800">Operadoras</h1>
+          <p className="text-slate-500 mt-1">Gestiona los usuarios con acceso a la Central de Operaciones.</p>
         </div>
         <Button onClick={() => openModal()}>
           <Plus className="w-5 h-5 mr-2" />
-          Nuevo Cliente
+          Nueva Operadora
         </Button>
       </div>
 
       {error ? (
         <div className="p-4 bg-red-50 text-red-600 rounded-xl border border-red-100">
-          Error al cargar clientes. Asegúrate de estar autenticado.
+          Error al cargar operadoras. Asegúrate de estar autenticado.
         </div>
       ) : (
         <DataTable table={table} isLoading={isLoading} />
@@ -166,7 +167,7 @@ export function Clients() {
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in-95">
             <div className="flex justify-between items-center p-6 border-b border-slate-100">
               <h2 className="text-xl font-bold text-slate-800">
-                {editingClient ? 'Editar Cliente' : 'Nuevo Cliente'}
+                {editingOperator ? 'Editar Operadora' : 'Nueva Operadora'}
               </h2>
               <button onClick={closeModal} className="text-slate-400 hover:bg-slate-100 p-2 rounded-full transition-colors">
                 <X className="w-5 h-5" />
@@ -182,28 +183,29 @@ export function Clients() {
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
                   className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/50 bg-slate-50 focus:bg-white transition-all outline-none"
-                  placeholder="Ej. Juan Pérez"
+                  placeholder="Ej. María Gonzales"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Teléfono</label>
-                <input 
-                  type="text" 
-                  required
-                  value={formData.phone}
-                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/50 bg-slate-50 focus:bg-white transition-all outline-none"
-                  placeholder="Ej. 66654321"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1">Email (Opcional)</label>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Correo Electrónico</label>
                 <input 
                   type="email" 
+                  required
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                   className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/50 bg-slate-50 focus:bg-white transition-all outline-none"
-                  placeholder="Ej. juan@correo.com"
+                  placeholder="Ej. maria@radiotaxi.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Contraseña</label>
+                <input 
+                  type="password" 
+                  required={!editingOperator}
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/50 bg-slate-50 focus:bg-white transition-all outline-none"
+                  placeholder={editingOperator ? "Dejar en blanco para no cambiar" : "Mínimo 6 caracteres"}
                 />
               </div>
 

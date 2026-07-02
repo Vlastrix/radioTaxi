@@ -9,7 +9,7 @@ interface DataTableProps<TData> {
 export function DataTable<TData>({ table, isLoading }: DataTableProps<TData>) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden animate-in fade-in">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto hidden md:block">
         <table className="w-full text-sm text-left">
           <thead className="bg-slate-50/80 border-b border-slate-200 text-slate-600 font-semibold uppercase text-xs tracking-wider">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -57,6 +57,64 @@ export function DataTable<TData>({ table, isLoading }: DataTableProps<TData>) {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile view (Cards) */}
+      <div className="md:hidden flex flex-col gap-4 p-4 bg-slate-50/50">
+        {isLoading ? (
+          <div className="h-32 flex items-center justify-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-blue-600 animate-bounce" />
+            <div className="w-3 h-3 rounded-full bg-blue-600 animate-bounce [animation-delay:-.3s]" />
+            <div className="w-3 h-3 rounded-full bg-blue-600 animate-bounce [animation-delay:-.5s]" />
+          </div>
+        ) : table.getRowModel().rows?.length ? (
+          table.getRowModel().rows.map((row) => (
+            <div key={row.id} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col mb-2">
+              {row.getVisibleCells().map((cell, index) => {
+                const headerName = typeof cell.column.columnDef.header === 'string' 
+                  ? cell.column.columnDef.header 
+                  : cell.column.id;
+                const isActions = headerName.toLowerCase() === 'acciones' || cell.column.id === 'actions';
+
+                if (index === 0) {
+                  return (
+                    <div key={cell.id} className="bg-slate-50 p-4 border-b border-slate-100">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                        {headerName}
+                      </span>
+                      <div className="text-base text-slate-800 break-words">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </div>
+                    </div>
+                  );
+                }
+
+                if (isActions) {
+                  return (
+                    <div key={cell.id} className="p-4 bg-slate-50/50 border-t border-slate-100 flex justify-end items-center">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={cell.id} className="px-4 py-3 flex justify-between items-center gap-4 border-b border-slate-50 last:border-0">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider shrink-0">
+                      {headerName}
+                    </span>
+                    <div className="text-sm text-slate-700 font-medium break-words text-right">
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))
+        ) : (
+          <div className="p-8 text-center text-slate-500 italic border border-slate-200 rounded-2xl bg-white shadow-sm">
+            No hay registros para mostrar.
+          </div>
+        )}
       </div>
       
       {/* Pagination controls */}
