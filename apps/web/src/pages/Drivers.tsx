@@ -15,6 +15,7 @@ type Driver = {
   id: number;
   name: string;
   phone: string;
+  email: string | null;
   license: string;
   createdAt: string;
 };
@@ -29,6 +30,7 @@ export function Drivers() {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    email: '',
     license: '',
   });
 
@@ -69,11 +71,12 @@ export function Drivers() {
       setFormData({
         name: driver.name,
         phone: driver.phone,
+        email: driver.email || '',
         license: driver.license,
       });
     } else {
       setEditingDriver(null);
-      setFormData({ name: '', phone: '', license: '' });
+      setFormData({ name: '', phone: '', email: '', license: '' });
     }
     setIsModalOpen(true);
   };
@@ -93,6 +96,10 @@ export function Drivers() {
     columnHelper.accessor('name', {
       header: 'Nombre',
       cell: info => <span className="font-semibold text-slate-800">{info.getValue()}</span>,
+    }),
+    columnHelper.accessor('email', {
+      header: 'Correo Electrónico',
+      cell: info => info.getValue() || <span className="text-slate-400 italic">No especificado</span>,
     }),
     columnHelper.accessor('phone', {
       header: 'Teléfono',
@@ -178,6 +185,16 @@ export function Drivers() {
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
                   className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/50 bg-slate-50 focus:bg-white transition-all outline-none"
                   placeholder="Ej. Carlos Martínez"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Correo Electrónico</label>
+                <input 
+                  type="email" 
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/50 bg-slate-50 focus:bg-white transition-all outline-none"
+                  placeholder="Ej. carlos@ejemplo.com"
                 />
               </div>
               <div>

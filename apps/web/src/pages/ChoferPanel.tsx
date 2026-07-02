@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/axios';
+import { MapContainer, TileLayer } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import { Map as MapIcon, ExternalLink } from 'lucide-react';
 
 export function ChoferPanel() {
   const queryClient = useQueryClient();
   const [showQR, setShowQR] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const { data: currentTrip, isLoading } = useQuery({
     queryKey: ['choferTrip'],
@@ -19,13 +23,36 @@ export function ChoferPanel() {
     mutationFn: async (status: string) => {
       return api.patch(`/services/${currentTrip.id}/status`, { status });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['choferTrip'] });
-      setShowQR(false);
+    onSuccess: (_, variables) => {
+      if (variables === 'COMPLETED') {
+        setShowSuccess(true);
+        setTimeout(() => {
+          setShowSuccess(false);
+          queryClient.invalidateQueries({ queryKey: ['choferTrip'] });
+          setShowQR(false);
+        }, 2500);
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['choferTrip'] });
+        setShowQR(false);
+      }
     },
   });
 
   if (isLoading) return <div className="p-8 text-center text-slate-500">Cargando...</div>;
+
+  if (showSuccess) {
+    return (
+      <div className="p-8 flex flex-col items-center justify-center h-[calc(100vh-100px)] animate-in zoom-in duration-300">
+        <div className="w-32 h-32 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-lg shadow-emerald-500/20 animate-bounce">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <h2 className="text-3xl font-black text-slate-800">¡Viaje Completado!</h2>
+        <p className="text-slate-500 mt-2 font-medium">Pago registrado con éxito</p>
+      </div>
+    );
+  }
 
   if (!currentTrip) {
     return (
@@ -43,18 +70,28 @@ export function ChoferPanel() {
     );
   }
 
+  const mapUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(currentTrip.origin)}&destination=${encodeURIComponent(currentTrip.destination)}`;
+
   return (
     <div className="p-6 max-w-md mx-auto h-[calc(100vh-100px)] flex flex-col">
       <div className="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden flex flex-col h-full relative animate-in slide-in-from-bottom-8">
         
-        {/* Header Map Placeholder */}
-        <div className="h-48 bg-slate-200 relative">
-          <div className="absolute inset-0 opacity-50 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-             <span className="px-4 py-1.5 bg-slate-800 text-white rounded-full text-xs font-bold shadow-lg">
-               Mapa (Simulación)
-             </span>
-          </div>
+        {/* Header Map */}
+        <div className="h-48 relative z-0">
+          <MapContainer 
+            center={[-17.7833, -63.1821]} // Santa Cruz de la Sierra
+            zoom={13} 
+            zoomControl={false}
+            dragging={false}
+            scrollWheelZoom={false}
+            style={{ width: '100%', height: '100%' }}
+            className="z-0"
+          >
+            <TileLayer
+              url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+            />
+          </MapContainer>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none z-10"></div>
         </div>
 
         {/* Content */}
@@ -71,21 +108,35 @@ export function ChoferPanel() {
             </span>
           </div>
 
-          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-4 mb-6 flex-1">
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 font-bold">O</div>
-              <div>
-                <p className="text-xs text-slate-500 font-semibold mb-0.5">Recoger en</p>
-                <p className="text-sm font-bold text-slate-800">{currentTrip.origin}</p>
+          <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 flex-1 mb-6 flex flex-col">
+            <div className="space-y-4">
+              <div className="flex gap-4">
+                <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 font-bold">O</div>
+                <div>
+                  <p className="text-xs text-slate-500 font-semibold mb-0.5">Recoger en</p>
+                  <p className="text-sm font-bold text-slate-800">{currentTrip.origin}</p>
+                </div>
+              </div>
+              <div className="w-full h-px bg-slate-200"></div>
+              <div className="flex gap-4">
+                <div className="w-10 h-10 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center shrink-0 font-bold">D</div>
+                <div>
+                  <p className="text-xs text-slate-500 font-semibold mb-0.5">Dejar en</p>
+                  <p className="text-sm font-bold text-slate-800">{currentTrip.destination}</p>
+                </div>
               </div>
             </div>
-            <div className="w-full h-px bg-slate-200"></div>
-            <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center shrink-0 font-bold">D</div>
-              <div>
-                <p className="text-xs text-slate-500 font-semibold mb-0.5">Dejar en</p>
-                <p className="text-sm font-bold text-slate-800">{currentTrip.destination}</p>
-              </div>
+            
+            <div className="mt-auto pt-6">
+              <a 
+                href={mapUrl}
+                target="_blank" rel="noopener noreferrer"
+                className="w-full bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-95"
+              >
+                <MapIcon className="w-4 h-4" />
+                Ver ruta en Google Maps
+                <ExternalLink className="w-3 h-3 ml-1 opacity-50" />
+              </a>
             </div>
           </div>
 
@@ -107,7 +158,7 @@ export function ChoferPanel() {
                     disabled={updateStatusMutation.isPending}
                     className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-lg py-4 rounded-2xl shadow-lg shadow-emerald-500/30 transition-all active:scale-95 disabled:opacity-50"
                   >
-                    Cobrar en Efectivo (Fin)
+                    Cobrar en Efectivo
                   </button>
                   <button
                     onClick={() => setShowQR(true)}

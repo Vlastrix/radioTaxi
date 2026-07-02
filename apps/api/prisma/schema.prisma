@@ -41,6 +41,7 @@ model Driver {
   id        Int       @id @default(autoincrement())
   name      String
   phone     String
+  email     String?   @unique
   license   String
   userId    Int?      @unique
   user      User?     @relation(fields: [userId], references: [id])

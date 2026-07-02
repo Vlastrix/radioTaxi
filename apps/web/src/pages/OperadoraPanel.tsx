@@ -44,9 +44,11 @@ export function OperadoraPanel() {
               <span className="bg-orange-100 text-orange-700 py-1 px-3 rounded-full text-xs">{pendingTrips.length}</span>
             </h2>
           </div>
-          <div className="p-4 overflow-y-auto flex-1 space-y-3 bg-slate-50/50">
+          <div className="p-4 overflow-y-auto flex-1 space-y-3 bg-slate-50/50 flex flex-col">
             {pendingTrips.length === 0 ? (
-              <p className="text-center text-slate-400 text-sm py-10">No hay viajes pendientes</p>
+              <div className="h-full flex-1 flex items-center justify-center text-slate-400 text-sm text-center px-6">
+                No hay viajes pendientes
+              </div>
             ) : (
               pendingTrips.map((trip: any) => (
                 <div 
@@ -74,13 +76,15 @@ export function OperadoraPanel() {
               <span className="bg-green-100 text-green-700 py-1 px-3 rounded-full text-xs">{availableDrivers.length}</span>
             </h2>
           </div>
-          <div className="p-4 overflow-y-auto flex-1 space-y-3 bg-slate-50/50">
+          <div className="p-4 overflow-y-auto flex-1 space-y-3 bg-slate-50/50 flex flex-col">
             {!selectedTripId ? (
-              <div className="h-full flex items-center justify-center text-slate-400 text-sm text-center px-6">
+              <div className="h-full flex-1 flex items-center justify-center text-slate-400 text-sm text-center px-6">
                 Selecciona un viaje de la lista izquierda para asignar a un chofer
               </div>
             ) : availableDrivers.length === 0 ? (
-              <p className="text-center text-slate-400 text-sm py-10">No hay choferes disponibles</p>
+              <div className="h-full flex-1 flex items-center justify-center text-slate-400 text-sm text-center px-6">
+                No hay choferes disponibles
+              </div>
             ) : (
               availableDrivers.map((driver: any) => (
                 <div key={driver.id} className="p-4 rounded-xl bg-white border border-slate-200 flex items-center justify-between">

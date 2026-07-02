@@ -65,6 +65,7 @@ export class AuthService {
         create: {
           name: data.name,
           phone: data.phone,
+          email: data.email,
           license: data.license || 'PENDING'
         }
       };

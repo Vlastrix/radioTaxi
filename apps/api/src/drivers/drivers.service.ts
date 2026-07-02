@@ -10,6 +10,7 @@ export class DriversService {
       data: {
         name: data.name,
         phone: data.phone,
+        email: data.email,
         license: data.license,
       }
     });
@@ -31,6 +32,7 @@ export class DriversService {
       data: {
         name: data.name,
         phone: data.phone,
+        email: data.email,
         license: data.license,
       }
     });
