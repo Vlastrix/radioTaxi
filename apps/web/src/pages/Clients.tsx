@@ -31,6 +31,7 @@ export function Clients() {
     name: '',
     phone: '',
     email: '',
+    password: '',
   });
 
   const { data: clients = emptyData, isLoading, error } = useQuery({
@@ -71,10 +72,11 @@ export function Clients() {
         name: client.name,
         phone: client.phone,
         email: client.email || '',
+        password: '',
       });
     } else {
       setEditingClient(null);
-      setFormData({ name: '', phone: '', email: '' });
+      setFormData({ name: '', phone: '', email: '', password: '' });
     }
     setIsModalOpen(true);
   };
@@ -89,6 +91,9 @@ export function Clients() {
     const payload: any = { ...formData };
     if (!payload.email) {
       delete payload.email; // Evitar conflictos de unicidad en BD si el string está vacío
+    }
+    if (!payload.password) {
+      delete payload.password; // No enviar contraseña si está vacía
     }
     saveMutation.mutate(payload);
   };
@@ -204,6 +209,18 @@ export function Clients() {
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                   className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/50 bg-slate-50 focus:bg-white transition-all outline-none"
                   placeholder="Ej. juan@correo.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Contraseña {editingClient ? '(Dejar en blanco para no cambiar)' : '(Opcional)'}
+                </label>
+                <input 
+                  type="password" 
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/50 bg-slate-50 focus:bg-white transition-all outline-none"
+                  placeholder="••••••••"
                 />
               </div>
 

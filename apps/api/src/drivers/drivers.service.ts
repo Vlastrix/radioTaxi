@@ -1,17 +1,37 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class DriversService {
   constructor(private prisma: PrismaService) {}
 
-  create(data: any) {
+  async create(data: any) {
+    let userId = null;
+
+    if (data.email && data.password) {
+      const role = await this.prisma.role.findUnique({ where: { name: 'DRIVER' } });
+      if (role) {
+        const hashedPassword = await bcrypt.hash(data.password, 10);
+        const user = await this.prisma.user.create({
+          data: {
+            email: data.email,
+            password: hashedPassword,
+            name: data.name,
+            roleId: role.id,
+          }
+        });
+        userId = user.id;
+      }
+    }
+
     return this.prisma.driver.create({
       data: {
         name: data.name,
         phone: data.phone,
         email: data.email,
         license: data.license,
+        ...(userId && { userId }),
       }
     });
   }
@@ -26,15 +46,45 @@ export class DriversService {
     return this.prisma.driver.findUnique({ where: { id } });
   }
 
-  update(id: number, data: any) {
+  async update(id: number, data: any) {
+    const driver = await this.prisma.driver.findUnique({ where: { id } });
+
+    if (data.password && driver?.userId) {
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+      await this.prisma.user.update({
+        where: { id: driver.userId },
+        data: { password: hashedPassword }
+      });
+    } else if (data.password && !driver?.userId && data.email) {
+      const role = await this.prisma.role.findUnique({ where: { name: 'DRIVER' } });
+      if (role) {
+        const hashedPassword = await bcrypt.hash(data.password, 10);
+        const user = await this.prisma.user.create({
+          data: {
+            email: data.email,
+            password: hashedPassword,
+            name: data.name || driver.name,
+            roleId: role.id,
+          }
+        });
+        data.userId = user.id;
+      }
+    }
+
+    const updateData: any = {
+      name: data.name,
+      phone: data.phone,
+      email: data.email,
+      license: data.license,
+    };
+
+    if (data.userId) {
+       updateData.userId = data.userId;
+    }
+
     return this.prisma.driver.update({
       where: { id },
-      data: {
-        name: data.name,
-        phone: data.phone,
-        email: data.email,
-        license: data.license,
-      }
+      data: updateData
     });
   }
 

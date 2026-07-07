@@ -32,6 +32,7 @@ export function Drivers() {
     phone: '',
     email: '',
     license: '',
+    password: '',
   });
 
   const { data: drivers = emptyData, isLoading, error } = useQuery({
@@ -73,10 +74,11 @@ export function Drivers() {
         phone: driver.phone,
         email: driver.email || '',
         license: driver.license,
+        password: '',
       });
     } else {
       setEditingDriver(null);
-      setFormData({ name: '', phone: '', email: '', license: '' });
+      setFormData({ name: '', phone: '', email: '', license: '', password: '' });
     }
     setIsModalOpen(true);
   };
@@ -88,7 +90,14 @@ export function Drivers() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    saveMutation.mutate(formData);
+    const payload: any = { ...formData };
+    if (!payload.email) {
+      delete payload.email;
+    }
+    if (!payload.password) {
+      delete payload.password;
+    }
+    saveMutation.mutate(payload);
   };
 
   const columnHelper = createColumnHelper<Driver>();
@@ -191,6 +200,7 @@ export function Drivers() {
                 <label className="block text-sm font-semibold text-slate-700 mb-1">Correo Electrónico</label>
                 <input 
                   type="email" 
+                  required
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                   className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/50 bg-slate-50 focus:bg-white transition-all outline-none"
@@ -217,6 +227,19 @@ export function Drivers() {
                   onChange={(e) => setFormData({...formData, license: e.target.value})}
                   className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/50 bg-slate-50 focus:bg-white transition-all outline-none"
                   placeholder="Ej. XYZ-1234"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">
+                  Contraseña {editingDriver ? '(Dejar en blanco para no cambiar)' : ''}
+                </label>
+                <input 
+                  type="password" 
+                  value={formData.password}
+                  required={!editingDriver}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/50 bg-slate-50 focus:bg-white transition-all outline-none"
+                  placeholder="••••••••"
                 />
               </div>
 
