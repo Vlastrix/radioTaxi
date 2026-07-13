@@ -59,7 +59,7 @@ export class ClientsService {
           data: {
             email: data.email,
             password: hashedPassword,
-            name: data.name || client.name,
+            name: data.name || client?.name,
             roleId: role.id,
           }
         });

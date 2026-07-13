@@ -63,7 +63,7 @@ export class DriversService {
           data: {
             email: data.email,
             password: hashedPassword,
-            name: data.name || driver.name,
+            name: data.name || driver?.name,
             roleId: role.id,
           }
         });
